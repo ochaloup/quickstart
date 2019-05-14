@@ -16,23 +16,44 @@
  */
 package org.jboss.as.quickstarts.ejb.remote.stateless;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.logging.Logger;
+
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.jboss.ejb3.annotation.Clustered;
 
 /**
  * @author Jaikiran Pai
  */
 @Stateless
 @Remote(RemoteCalculator.class)
+@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+@Clustered
 public class CalculatorBean implements RemoteCalculator {
+    private static final Logger log = Logger.getLogger(CalculatorBean.class.getName());
 
     @Override
     public int add(int a, int b) {
+        try {
+            log.info("(add) operation from " + InetAddress.getLocalHost());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
         return a + b;
     }
 
     @Override
     public int subtract(int a, int b) {
+        try {
+            log.info("(substract) operation from " + InetAddress.getLocalHost());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
         return a - b;
     }
 }

@@ -40,4 +40,17 @@
              </configuration>
         </authentication-configurations>
     </authentication-client>
+    <!--
+    <endpoint xmlns="urn:jboss-remoting:5.0">
+        <connections>
+            <connection destination="remote+http://localhost:8080" read-timeout="50" write-timeout="50" heartbeat-interval="10000"/>
+        </connections>
+    </endpoint>
+    -->
+    <jboss-ejb-client xmlns="urn:jboss:wildfly-client-ejb:3.0">
+        <connections>
+            <connection uri="remote+http://localhost:8180" />
+            <connection uri="remote+http://localhost:8080" />
+        </connections>
+    </jboss-ejb-client>
 </configuration>
