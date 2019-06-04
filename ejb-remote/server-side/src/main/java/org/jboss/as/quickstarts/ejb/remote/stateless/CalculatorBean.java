@@ -32,7 +32,8 @@ import org.jboss.ejb3.annotation.Clustered;
  */
 @Stateless
 @Remote(RemoteCalculator.class)
-@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+// @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+@TransactionAttribute(TransactionAttributeType.MANDATORY)
 @Clustered
 public class CalculatorBean implements RemoteCalculator {
     private static final Logger log = Logger.getLogger(CalculatorBean.class.getName());

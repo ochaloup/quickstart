@@ -86,7 +86,7 @@ public class RemoteEJBClient {
                 throw new RuntimeException("Remote stateless calculator returned an incorrect difference " + difference
                     + " ,expected difference was " + (num1 - num2));
             }
-            txn.commit();
+            txn.rollback();
         } catch (Exception e) {
             log.warnf(e, "Error on commit transaction '%s'", txn);
             try {
@@ -148,7 +148,7 @@ public class RemoteEJBClient {
      * @throws NamingException
      */
     private static RemoteCalculator lookupRemoteStatelessCalculator() throws NamingException {
-        final Hashtable<String, String> jndiProperties = getJndiProperties(true);
+        final Hashtable<String, String> jndiProperties = getJndiProperties(false);
 
         final Context context = new InitialContext(jndiProperties);
 
@@ -176,7 +176,7 @@ public class RemoteEJBClient {
     }
 
     private static UserTransaction lookupUserTransaction() throws NamingException {
-        final Hashtable<String, String> jndiProperties = getJndiProperties(true);
+        final Hashtable<String, String> jndiProperties = getJndiProperties(false);
 
         final Context context = new InitialContext(jndiProperties);
 
