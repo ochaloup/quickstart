@@ -119,6 +119,16 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-enforcer-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>enforce-java-version</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
