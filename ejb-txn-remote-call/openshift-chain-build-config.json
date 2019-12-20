@@ -1,0 +1,279 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "annotations": {
+      "tags": "wildfly,javaee,java,jboss",
+      "openshift.io/display-name": "WildFly BuildConfig"
+    },
+    "name": "wildfly-s2i"
+  },
+  "labels": {
+    "template": "wildfly-s2i"
+  },
+  "message": "WildFly BuildConfig configuration for chain builds.",
+  "parameters": [
+    {
+      "displayName": "Application Name",
+      "description": "The name for the application.",
+      "name": "APPLICATION_NAME",
+      "value": "client",
+      "required": true
+    },
+    {
+      "displayName": "WildFly Builder Image Name",
+      "description": "Name of the s2i WildFly image to use",
+      "name": "S2I_BUILDER_IMAGE_NAME",
+      "value": "wildfly-centos7:latest",
+      "required": true
+    },
+    {
+      "displayName": "EAP Runtime Image Name",
+      "description": "Name of the runtime WildFly image to use",
+      "name": "S2I_RUNTIME_IMAGE_NAME",
+      "value": "wildfly-runtime-centos7:latest",
+      "required": true
+    },
+    {
+      "displayName": "ImageStream Namespace",
+      "description": "Namespace in which the ImageStreams are installed.",
+      "name": "IMAGE_STREAM_NAMESPACE",
+      "value": "wildfly-quickstarts",
+      "required": true
+    },
+    {
+      "displayName": "Git Repository URL",
+      "description": "Git source URI for application",
+      "name": "SOURCE_REPOSITORY_URL",
+      "value": "https://github.com/wildfly/quickstart.git",
+      "required": true
+    },
+    {
+      "displayName": "Git Reference",
+      "description": "Git branch/tag reference",
+      "name": "SOURCE_REPOSITORY_REF",
+      "value": "master",
+      "required": false
+    },
+    {
+      "displayName": "Context Directory",
+      "description": "Path within Git project to build; empty for root project directory.",
+      "name": "CONTEXT_DIR",
+      "value": "ejb-txn-remote-call/client",
+      "required": false
+    },
+    {
+      "displayName": "Maven mirror URL",
+      "description": "Maven mirror to use for S2I builds",
+      "name": "MAVEN_MIRROR_URL",
+      "value": "",
+      "required": false
+    },
+    {
+      "displayName": "Maven Additional Arguments",
+      "description": "Maven additional arguments to use for S2I builds",
+      "name": "MAVEN_ARGS_APPEND",
+      "value": "-Dcom.redhat.xpaas.repo.jbossorg",
+      "required": false
+    },
+    {
+      "description": "List of directories from which archives will be copied into the deployment folder. If unspecified, all archives in /target will be copied.",
+      "name": "ARTIFACT_DIR",
+      "value": "",
+      "required": false
+    },
+    {
+      "displayName": "Galleon layers",
+      "description": "Comma separated list of Galleon layers to provision a server.",
+      "name": "GALLEON_PROVISION_LAYERS",
+      "required": false
+    },
+    {
+      "displayName": "Github Webhook Secret",
+      "description": "GitHub trigger secret",
+      "name": "GITHUB_WEBHOOK_SECRET",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "displayName": "Generic Webhook Secret",
+      "description": "Generic build trigger secret",
+      "name": "GENERIC_WEBHOOK_SECRET",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    }
+  ],
+  "objects": [
+    {
+      "kind": "ImageStream",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        }
+      }
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}-build-artifacts",
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        }
+      }
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}-build-artifacts",
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        }
+      },
+      "spec": {
+        "source": {
+          "type": "Git",
+          "git": {
+            "uri": "${SOURCE_REPOSITORY_URL}",
+            "ref": "${SOURCE_REPOSITORY_REF}"
+          },
+          "contextDir": "${CONTEXT_DIR}"
+        },
+        "strategy": {
+          "type": "Source",
+          "sourceStrategy": {
+            "env": [
+              {
+                "name": "MAVEN_MIRROR_URL",
+                "value": "${MAVEN_MIRROR_URL}"
+              },
+              {
+                "name": "MAVEN_ARGS_APPEND",
+                "value": "${MAVEN_ARGS_APPEND}"
+              },
+              {
+                "name": "GALLEON_PROVISION_LAYERS",
+                "value": "${GALLEON_PROVISION_LAYERS}"
+              },
+              {
+                "name": "GALLEON_PROVISION_DEFAULT_FAT_SERVER",
+                "value": "true"
+              },
+              {
+                "name": "S2I_IMAGE_SOURCE_MOUNTS",
+                "value": "extensions"
+              },
+              {
+                "name": "JAVA_OPTS_APPEND",
+                "value": "-Dwildfly.config.url=$JBOSS_HOME/standalone/configuration/custom-config.xml"
+              },
+              {
+                "name": "ARTIFACT_DIR",
+                "value": "${ARTIFACT_DIR}"
+              }
+            ],
+            "forcePull": true,
+            "incremental": true,
+            "from": {
+              "kind": "ImageStreamTag",
+              "name": "${S2I_BUILDER_IMAGE_NAME}",
+              "namespace": "${IMAGE_STREAM_NAMESPACE}"
+            }
+          }
+        },
+        "output": {
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${APPLICATION_NAME}-build-artifacts:latest"
+          }
+        },
+        "triggers": [
+          {
+            "type": "GitHub",
+            "github": {
+              "secret": "${GITHUB_WEBHOOK_SECRET}"
+            }
+          },
+          {
+            "type": "Generic",
+            "generic": {
+              "secret": "${GENERIC_WEBHOOK_SECRET}"
+            }
+          },
+          {
+            "type": "ImageChange",
+            "imageChange": {}
+          },
+          {
+            "type": "ConfigChange"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "BuildConfig",
+      "metadata": {
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        },
+        "name": "${APPLICATION_NAME}"
+      },
+      "spec": {
+        "output": {
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${APPLICATION_NAME}:latest"
+          }
+        },
+        "source": {
+          "dockerfile": "FROM ${S2I_RUNTIME_IMAGE_NAME}\nCOPY /server $JBOSS_HOME\nUSER root\nRUN chown -R jboss:root $JBOSS_HOME && chmod -R ug+rwX $JBOSS_HOME\nUSER jboss\nCMD $JBOSS_HOME/bin/openshift-launch.sh",
+          "images": [
+            {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${APPLICATION_NAME}-build-artifacts:latest"
+              },
+              "paths": [
+                {
+                  "sourcePath": "/s2i-output/server/",
+                  "destinationDir": "."
+                }
+              ]
+            }
+          ]
+        },
+        "strategy": {
+          "dockerStrategy": {
+            "imageOptimizationPolicy": "SkipLayers",
+            "from": {
+              "kind": "ImageStreamTag",
+              "name": "${S2I_RUNTIME_IMAGE_NAME}",
+              "namespace": "${IMAGE_STREAM_NAMESPACE}"
+            }
+          },
+          "type": "Docker"
+        },
+        "triggers": [
+          {
+            "type": "ImageChange",
+            "imageChange": {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${APPLICATION_NAME}-build-artifacts:latest"
+              }
+            }
+          },
+          {
+            "type": "ConfigChange"
+          }
+        ]
+      }
+    }
+  ]
+}

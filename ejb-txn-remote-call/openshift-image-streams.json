@@ -1,0 +1,79 @@
+{
+  "kind": "List",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "wildfly-image-streams",
+    "annotations": {
+      "description": "ImageStream definition for WildFly",
+      "openshift.io/provider-display-name": "Red Hat, Inc."
+    }
+  },
+  "items": [
+    {
+      "kind": "ImageStream",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "wildfly-centos7",
+        "annotations": {
+          "openshift.io/display-name": "WildFly S2I Builder Image",
+          "openshift.io/provider-display-name": "Red Hat, Inc.",
+          "version": "latest"
+        }
+      },
+      "spec": {
+        "tags": [
+          {
+            "name": "latest",
+            "annotations": {
+              "description": "The latest available build of WildFly",
+              "tags": "builder,javaee,java,jboss,wildfly",
+              "sampleRef": "openshift",
+              "version": "latest",
+              "openshift.io/display-name": "WildFly S2I Builder Image"
+            },
+            "referencePolicy": {
+              "type": "Local"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "quay.io/wildfly/wildfly-centos7"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "wildfly-runtime-centos7",
+        "annotations": {
+          "openshift.io/display-name": "WildFly S2I Runtime Image",
+          "openshift.io/provider-display-name": "Red Hat, Inc.",
+          "version": "latest"
+        }
+      },
+      "spec": {
+        "tags": [
+          {
+            "name": "latest",
+            "annotations": {
+              "description": "The latest available build of WildFly runtime image.",
+              "tags": "runtime,javaee,java,jboss,wildfly",
+              "sampleRef": "openshift",
+              "version": "latest",
+              "openshift.io/display-name": "WildFly S2I Runtime Image"
+            },
+            "referencePolicy": {
+              "type": "Local"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "quay.io/wildfly/wildfly-runtime-centos7"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
