@@ -1,0 +1,15 @@
+# setup from cli.*.properties
+set serverConfig=${serverConfig}
+
+# running embedded server with server config
+embed-server --server-config=$serverConfig
+
+# this script expects the h2 driver is available in the server xml configuration
+xa-data-source add --name=ejbJtaDs --driver-name=h2 --jndi-name=java:jboss/datasources/ejbJtaDs \
+  --user-name=sa --password=sa --xa-datasource-properties=URL=jdbc:h2:mem:ejb-jta-h2-ds;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1 \
+  --enabled=true --same-rm-override=false --interleaving=true --pad-xid=false --wrap-xa-resource=true \
+  --recovery-username=sa --recovery-password=sa --validate-on-match=false --background-validation=false --background-validation-millis=10000
+
+echo "XA datasource 'ejbJtaDs' was configured"
+
+quit

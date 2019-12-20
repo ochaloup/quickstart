@@ -1,0 +1,33 @@
+apiVersion: wildfly.org/v1alpha1
+kind: WildFlyServer
+metadata:
+  name: client
+spec:
+  applicationImage: "image-registry.openshift-image-registry.svc:5000/ejb-txn-remote-call-project/client:latest"
+  # change this when Kubernetes is used
+  # applicationImage: "localhost:5000/wildfly-quickstarts/client:latest"
+  replicas: 1
+  env:
+    - name: JAVA_OPTS_APPEND
+      value: -Dwildfly.config.url=$JBOSS_HOME/standalone/configuration/custom-config.xml
+    - name: POSTGRESQL_DATASOURCE
+      value: ejbJtaDs
+    - name: POSTGRESQL_SERVICE_HOST
+      value: postgresql
+    - name: POSTGRESQL_SERVICE_PORT
+      value: '5432'
+    - name: POSTGRESQL_DATABASE
+      valueFrom:
+        secretKeyRef:
+          name: postgresql
+          key: database-name
+    - name: POSTGRESQL_USER
+      valueFrom:
+        secretKeyRef:
+          name: postgresql
+          key: username
+    - name: POSTGRESQL_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgresql
+          key: password
