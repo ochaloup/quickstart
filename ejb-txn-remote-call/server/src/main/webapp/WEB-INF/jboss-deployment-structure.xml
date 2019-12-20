@@ -1,0 +1,9 @@
+<jboss-deployment-structure>
+    <deployment>
+        <dependencies>
+            <!-- dependency to Narayana transaction module as the deployment uses
+                 internal Narayana classes to work with XAResource and recovery -->
+            <module name="org.jboss.jts" slot="main" export="true" meta-inf="export"/>
+        </dependencies>
+    </deployment>
+</jboss-deployment-structure>
