@@ -16,12 +16,17 @@
  */
 package org.jboss.as.quickstarts.ejb.remote.client;
 
+import org.jboss.as.quickstarts.ejb.remote.client.entity.TestEntity;
 import org.jboss.as.quickstarts.ejb.remote.stateful.RemoteCounter;
 import org.jboss.as.quickstarts.ejb.remote.stateless.RemoteCalculator;
+import org.wildfly.transaction.client.RemoteTransactionContext;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.transaction.UserTransaction;
 import java.util.Hashtable;
 
@@ -36,10 +41,15 @@ public class RemoteEJBClient {
     private static final String HTTP = "http";
 
     public static void main(String[] args) throws Exception {
-        // UserTransaction utx = RemoteTransactionContext.getInstance().getUserTransaction();
-        UserTransaction utx = getUserTxn();
-
+        UserTransaction utx = RemoteTransactionContext.getInstance().getUserTransaction();
+        // UserTransaction utx = getUserTxn();
         utx.begin();
+
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("persistence-unit");
+        EntityManager entityManager = emf.createEntityManager();
+
+        entityManager.persist(new TestEntity("test"));
+
         // Invoke a stateless bean
         invokeStatelessBean();
         utx.rollback();
