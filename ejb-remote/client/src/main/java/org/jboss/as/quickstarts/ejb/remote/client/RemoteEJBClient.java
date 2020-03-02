@@ -22,7 +22,7 @@ import org.jboss.as.quickstarts.ejb.remote.stateless.RemoteCalculator;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
+import javax.transaction.UserTransaction;
 import java.util.Hashtable;
 
 /**
@@ -36,8 +36,13 @@ public class RemoteEJBClient {
     private static final String HTTP = "http";
 
     public static void main(String[] args) throws Exception {
+        // UserTransaction utx = RemoteTransactionContext.getInstance().getUserTransaction();
+        UserTransaction utx = getUserTxn();
+
+        utx.begin();
         // Invoke a stateless bean
         invokeStatelessBean();
+        utx.rollback();
 
         // Invoke a stateful bean
         invokeStatefulBean();
@@ -108,16 +113,7 @@ public class RemoteEJBClient {
      * @throws NamingException
      */
     private static RemoteCalculator lookupRemoteStatelessCalculator() throws NamingException {
-        final Hashtable<String, String> jndiProperties = new Hashtable<>();
-        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, "org.wildfly.naming.client.WildFlyInitialContextFactory");
-        if(Boolean.getBoolean(HTTP)) {
-            //use HTTP based invocation. Each invocation will be a HTTP request
-            jndiProperties.put(Context.PROVIDER_URL,"http://localhost:8080/wildfly-services");
-        } else {
-            //use HTTP upgrade, an initial upgrade requests is sent to upgrade to the remoting protocol
-            jndiProperties.put(Context.PROVIDER_URL,"remote+http://localhost:8080");
-        }
-        final Context context = new InitialContext(jndiProperties);
+        final Context context = getContext();
 
         // The JNDI lookup name for a stateless session bean has the syntax of:
         // ejb:<appName>/<moduleName>/<distinctName>/<beanName>!<viewClassName>
@@ -149,17 +145,7 @@ public class RemoteEJBClient {
      * @throws NamingException
      */
     private static RemoteCounter lookupRemoteStatefulCounter() throws NamingException {
-        final Hashtable<String, String> jndiProperties = new Hashtable<>();
-        //jndiProperties.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
-        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, "org.wildfly.naming.client.WildFlyInitialContextFactory");
-        if(Boolean.getBoolean(HTTP)) {
-            //use HTTP based invocation. Each invocation will be a HTTP request
-            jndiProperties.put(Context.PROVIDER_URL,"http://localhost:8080/wildfly-services");
-        } else {
-            //use HTTP upgrade, an initial upgrade requests is sent to upgrade to the remoting protocol
-            jndiProperties.put(Context.PROVIDER_URL,"remote+http://localhost:8080");
-        }
-        final Context context = new InitialContext(jndiProperties);
+        final Context context = getContext();
 
         // The JNDI lookup name for a stateful session bean has the syntax of:
         // ejb:<appName>/<moduleName>/<distinctName>/<beanName>!<viewClassName>?stateful
@@ -182,5 +168,33 @@ public class RemoteEJBClient {
         // let's do the lookup
         return (RemoteCounter) context.lookup("ejb:/ejb-remote-server-side/CounterBean!"
             + RemoteCounter.class.getName() + "?stateful");
+    }
+
+    /**
+     * For this to work there has to be loaded serivce provider for 'txn' naming context.
+     * The interface for the service is <code>org.wildfly.naming.client.NamingContextFactory</code>
+     * the implementation for 'txn' prefix is <code>org.wildfly.transaction.client.naming.txn.TxnNamingContextFactory</code>
+     *
+     * You may add the string 'org.wildfly.transaction.client.naming.txn.TxnNamingContextFactory' under <code>META-INF/services/org.wildfly.naming.client.NamingContextFactory</code>
+     * as a new line.
+     *
+     * If not possible better to use just <code>RemoteTransactionContext.getInstance().getUserTransaction()</code>
+     */
+    private static UserTransaction getUserTxn() throws NamingException {
+        final Context context = getContext();
+        return (UserTransaction) context.lookup("txn:UserTransaction");
+    }
+
+    private static InitialContext getContext() throws NamingException {
+        final Hashtable<String, String> jndiProperties = new Hashtable<>();
+        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, "org.wildfly.naming.client.WildFlyInitialContextFactory");
+        if(Boolean.getBoolean(HTTP)) {
+            //use HTTP based invocation. Each invocation will be a HTTP request
+            jndiProperties.put(Context.PROVIDER_URL,"http://localhost:8080/wildfly-services");
+        } else {
+            //use HTTP upgrade, an initial upgrade requests is sent to upgrade to the remoting protocol
+            jndiProperties.put(Context.PROVIDER_URL,"remote+http://localhost:8080");
+        }
+        return new InitialContext(jndiProperties);
     }
 }
