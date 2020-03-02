@@ -1,0 +1,26 @@
+#!/bin/sh
+set -x
+
+find /tmp
+
+# pushd /tmp
+# curl  https://raw.githubusercontent.com/ochaloup/quickstart/WFLY-12904-ejb-transaction-remote-call-18.0.0.Final/ejb-txn-remote-call/ejb-txn-remote-call-18.0.0.Final.pom --output ejb-txn-remote-call-18.0.0.Final.pom
+# mvn install:install-file -Dfile="/tmp/src/.s2i/bin/ejb-txn-remote-call-18.0.0.Final.pom" -DgroupId=org.wildfly.quickstarts -DartifactId=ejb-txn-remote-call -Dversion=18.0.0.Final -Dpackaging=pom -Dmaven.repo.local=/tmp/artifacts/m2
+# mvn install:install-file -Dfile="/tmp/src/.s2i/bin/ejb-txn-remote-call-18.0.0.Final.pom" -DgroupId=org.wildfly.quickstarts -DartifactId=ejb-txn-remote-call -Dversion=18.0.0.Final -Dpackaging=pom -Dmaven.repo.local=/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository
+ 
+# ls /opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository
+# find /opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/quickstarts/ejb-txn-remote-call
+mkdir -p /tmp/artifacts/m2/org/wildfly/quickstarts/ejb-txn-remote-call/18.0.0.Final/
+cp /tmp/src/.s2i/bin/ejb-txn-remote-call-18.0.0.Final.pom /tmp/artifacts/m2/org/wildfly/quickstarts/ejb-txn-remote-call/18.0.0.Final/
+mkdir -p /opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/quickstarts/ejb-txn-remote-call/18.0.0.Final/
+cp /tmp/src/.s2i/bin/ejb-txn-remote-call-18.0.0.Final.pom /opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/quickstarts/ejb-txn-remote-call/18.0.0.Final/
+
+# popd 
+
+set +x
+
+# This assemble script overrides the default one
+# we need to wrap the execution with our cofiguration changes
+# but then run the default assemble
+source /usr/local/s2i/assemble
+
