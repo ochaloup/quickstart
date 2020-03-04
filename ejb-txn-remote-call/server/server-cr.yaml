@@ -3,7 +3,7 @@ kind: WildFlyServer
 metadata:
   name: server
 spec:
-  applicationImage: "image-registry.openshift-image-registry.svc:5000/ejb-txn-remote-call-project/server:latest"
+  applicationImage: "image-registry.openshift-image-registry.svc:5000/ochaloup-namespace/server:latest"
   # change this when Kubernetes is used
   # applicationImage: "localhost:5000/wildfly-quickstarts/server:latest"
   replicas: 2
