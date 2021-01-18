@@ -3,7 +3,7 @@ kind: WildFlyServer
 metadata:
   name: client
 spec:
-  applicationImage: "image-registry.openshift-image-registry.svc:5000/ejb-txn-remote-call-project/client:latest"
+  applicationImage: "image-registry.openshift-image-registry.svc:5000/mywfly/client:latest"
   replicas: 1
   env:
     - name: JAVA_OPTS_APPEND
